@@ -26,6 +26,11 @@ public class ServerHandler {
             return "ERROR: Lệnh trống.";
         }
 
+        // Kiểm tra nếu là lệnh SEND định dạng mới
+        if (rawCommand.startsWith("SEND|")) {
+            return handleSend(rawCommand);
+        }
+
         String[] parts = rawCommand.split(" ", 4);
         String command = parts[0].toUpperCase();
 
@@ -34,8 +39,6 @@ public class ServerHandler {
                 return handleRegister(parts);
             case "LOGIN":
                 return handleLogin(parts);
-            case "SEND":
-                return handleSend(parts);
             case "READ":
                 return handleRead(parts);
             default:
@@ -57,7 +60,6 @@ public class ServerHandler {
 
         userDir.mkdirs();
 
-        // 1. Tạo file profile.json
         String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String profileJson = String.format(
             "{\n  \"id\": \"%s\",\n  \"username\": \"%s\",\n  \"password\": \"%s\",\n  \"created_at\": \"%s\"\n}",
@@ -69,7 +71,6 @@ public class ServerHandler {
             return "ERROR: Không thể ghi file profile.json.";
         }
 
-        // 2. Tạo file new_email.txt chào mừng mặc định
         String welcomeContent = "Thank you for using this service. we hope that you will feel comfortabl........";
         try (FileWriter writer = new FileWriter(new File(userDir, "new_email.txt"))) {
             writer.write(welcomeContent);
@@ -116,25 +117,36 @@ public class ServerHandler {
         }
     }
 
-    private String handleSend(String[] parts) {
-        if (parts.length < 4) return "ERROR: Cú pháp: SEND   ";
+    private String handleSend(String rawCommand) {
+        // Cấu trúc: SEND|senderEmail|senderIp|recipientEmail|recipientIp|time|subject|content
+        String[] parts = rawCommand.split("\\|", 8);
+        if (parts.length < 8) {
+            return "ERROR: Gói tin SEND thiếu dữ liệu.";
+        }
 
-        String senderId = parts[1].trim();
-        String recipientId = parts[2].trim();
-        String content = parts[3].trim();
+        String senderEmail = parts[1].trim();
+        String senderIp = parts[2].trim();
+        String recipientEmail = parts[3].trim();
+        String recipientIp = parts[4].trim();
+        String sendTime = parts[5].trim();
+        String subject = parts[6].trim();
+        String content = parts[7].trim();
 
-        File recipientDir = new File(DATA_DIR, recipientId);
+        File recipientDir = new File(DATA_DIR, recipientEmail);
         if (!recipientDir.exists()) {
-            return "ERROR: Người nhận '" + recipientId + "' không tồn tại trên máy chủ.";
+            return "ERROR: Người nhận '" + recipientEmail + "' không tồn tại trên máy chủ.";
         }
 
         long timestamp = System.currentTimeMillis() / 1000;
-        String senderPrefix = senderId.contains("@") ? senderId.split("@")[0] : senderId;
+        String senderPrefix = senderEmail.contains("@") ? senderEmail.split("@")[0] : senderEmail;
         String fileName = "email_" + timestamp + "_from_" + senderPrefix + ".txt";
         File emailFile = new File(recipientDir, fileName);
 
-        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String emailBody = "From: " + senderId + "\nTo: " + recipientId + "\nDate: " + nowStr + "\n----------------------------------------\n" + content;
+        // Định dạng nội dung email được ghi xuống file trên Server
+        String emailBody = String.format(
+            "From: %s (IP: %s)\nTo: %s (IP: %s)\nDate: %s\nSubject: %s\n----------------------------------------\n%s",
+            senderEmail, senderIp, recipientEmail, recipientIp, sendTime, subject, content
+        );
 
         try (FileWriter writer = new FileWriter(emailFile)) {
             writer.write(emailBody);
@@ -142,7 +154,7 @@ public class ServerHandler {
             return "ERROR: Không thể ghi file email.";
         }
 
-        return "SUCCESS: Đã gửi thư thành công tới '" + recipientId + "'.";
+        return "SUCCESS: Đã gửi thư thành công tới '" + recipientEmail + "'.";
     }
 
     private String handleRead(String[] parts) {

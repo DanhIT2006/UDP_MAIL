@@ -1,22 +1,10 @@
 package client;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.*;
+import java.awt.*;
+import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MainMailFrame extends JFrame {
     private final String serverIp;
@@ -27,7 +15,7 @@ public class MainMailFrame extends JFrame {
     private DefaultListModel listModelMail;
     private JList listMails;
     private JTextArea txtReadContent, txtEmailContent;
-    private JTextField txtRecipient;
+    private JTextField txtRecipientEmail, txtRecipientIp, txtSubject;
 
     public MainMailFrame(String serverIp, int serverPort, String userEmail, String password, String initialFileData) {
         this.serverIp = serverIp;
@@ -36,14 +24,14 @@ public class MainMailFrame extends JFrame {
         this.currentPassword = password;
 
         setTitle("Hộp Thư - " + currentUserEmail);
-        setSize(850, 600);
+        setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(5, 5));
 
-        // Thanh trạng thái trên cùng
+        // Panel thông tin trên cùng
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new JLabel("Đang đăng nhập: "));
+        topPanel.add(new JLabel("Tài khoản: "));
         JLabel lblUser = new JLabel(currentUserEmail);
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblUser.setForeground(new Color(0, 102, 204));
@@ -74,37 +62,48 @@ public class MainMailFrame extends JFrame {
         inboxPanel.add(splitPane, BorderLayout.CENTER);
         tabbedPane.addTab("Hộp Thư Đến", inboxPanel);
 
-        // TAB 2: Soạn / Gửi email
+        // TAB 2: Soạn & Gửi email
         JPanel sendPanel = new JPanel(new BorderLayout(5, 5));
-        JPanel sendTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        sendTop.add(new JLabel("Người nhận (Email ID):"));
-        txtRecipient = new JTextField(25);
-        sendTop.add(txtRecipient);
+        
+        JPanel headerPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        headerPanel.setBorder(BorderFactory.createTitledBorder("Thông tin thư gửi"));
+
+        headerPanel.add(new JLabel("Email Người Nhận:"));
+        txtRecipientEmail = new JTextField();
+        headerPanel.add(txtRecipientEmail);
+
+        headerPanel.add(new JLabel("IP Client Người Nhận:"));
+        txtRecipientIp = new JTextField("127.0.0.1");
+        headerPanel.add(txtRecipientIp);
+
+        headerPanel.add(new JLabel("Tiêu Đề Email:"));
+        txtSubject = new JTextField();
+        headerPanel.add(txtSubject);
 
         txtEmailContent = new JTextArea();
         JButton btnSend = new JButton("Gửi Email");
 
-        sendPanel.add(sendTop, BorderLayout.NORTH);
+        sendPanel.add(headerPanel, BorderLayout.NORTH);
         sendPanel.add(new JScrollPane(txtEmailContent), BorderLayout.CENTER);
         sendPanel.add(btnSend, BorderLayout.SOUTH);
         tabbedPane.addTab("Soạn & Gửi Email", sendPanel);
 
         add(tabbedPane, BorderLayout.CENTER);
 
-        // Khởi tạo danh sách thư ban đầu
+        // Đổ danh sách thư ban đầu
         updateMailList(initialFileData);
 
         // Sự kiện
         btnRefresh.addActionListener(e -> refreshMailList());
         btnSend.addActionListener(e -> sendMail());
         btnLogout.addActionListener(e -> {
-            new LoginFrame().setVisible(true);
+            new LoginFrame(serverIp, String.valueOf(serverPort)).setVisible(true);
             dispose();
         });
 
         listMails.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listMails.getSelectedValue() != null) {
-                readMail(listMails.getSelectedValue().toString());
+                readMail(listMails.getSelectedValue());
             }
         });
     }
@@ -128,7 +127,7 @@ public class MainMailFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Đã cập nhật hộp thư!");
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi làm mới hộp thư: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Lỗi làm mới: " + ex.getMessage());
         }
     }
 
@@ -147,20 +146,31 @@ public class MainMailFrame extends JFrame {
     }
 
     private void sendMail() {
-        String recipient = txtRecipient.getText().trim();
+        String recipientEmail = txtRecipientEmail.getText().trim();
+        String recipientIp = txtRecipientIp.getText().trim();
+        String subject = txtSubject.getText().trim();
         String content = txtEmailContent.getText().trim();
 
-        if (recipient.isEmpty() || content.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập Email người nhận và Nội dung!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        if (recipientEmail.isEmpty() || recipientIp.isEmpty() || subject.isEmpty() || content.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ: Email người nhận, IP người nhận, Tiêu đề và Nội dung!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            String msg = "SEND " + currentUserEmail + " " + recipient + " " + content;
+            // Tự động lấy IP của Client hiện tại
+            String senderIp = InetAddress.getLocalHost().getHostAddress();
+            // Lấy thời gian gửi hiện tại
+            String sendTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            // Đóng gói gói tin phân cách bằng '|'
+            // SEND|senderEmail|senderIp|recipientEmail|recipientIp|time|subject|content
+            String msg = "SEND|" + currentUserEmail + "|" + senderIp + "|" + recipientEmail + "|" + recipientIp + "|" + sendTime + "|" + subject + "|" + content;
+
             String res = ClientUDP.sendAndReceive(serverIp, serverPort, msg);
             JOptionPane.showMessageDialog(this, res);
 
             if (res.startsWith("SUCCESS:")) {
+                txtSubject.setText("");
                 txtEmailContent.setText("");
             }
         } catch (Exception ex) {
