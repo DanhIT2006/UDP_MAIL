@@ -14,11 +14,14 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import java.net.InetAddress;
+
 public class MailServerGUI extends JFrame {
     private JTextArea logArea;
     private JButton btnStart, btnStop;
     private JTextField txtPort;
     private ServerUDP serverUDP;
+
 
     public MailServerGUI() {
         setTitle("Mail Server Management (UDP LAN)");
@@ -28,6 +31,19 @@ public class MailServerGUI extends JFrame {
         setLayout(new BorderLayout(10, 10));
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        String serverIP = "Unknown";
+        try {
+            serverIP = InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {
+            serverIP = "127.0.0.1";
+        }
+
+        JLabel lblIP = new JLabel("Server IP: " + serverIP + " | ");
+        lblIP.setFont(new Font("Arial", Font.BOLD, 14));
+        lblIP.setForeground(java.awt.Color.BLUE);
+        topPanel.add(lblIP);
+        
         topPanel.add(new JLabel("UDP Port:"));
         txtPort = new JTextField("8080", 6);
         topPanel.add(txtPort);

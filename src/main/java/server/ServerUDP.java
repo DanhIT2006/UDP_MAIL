@@ -47,8 +47,10 @@ public class ServerUDP implements Runnable {
                 String rawMsg = new String(receivePacket.getData(), 0, receivePacket.getLength(), "UTF-8").trim();
                 InetAddress clientAddr = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
+                String clientIP = clientAddr.getHostAddress();
 
-                logListener.onLog(String.format("[GÓI TIN UDP] Từ %s:%d -> Lệnh: %s", clientAddr.getHostAddress(), clientPort, rawMsg));
+                logListener.onLog(String.format("[NHẬN TỪ CLIENT] IP: %s | Port: %d", clientIP, clientPort));
+                logListener.onLog("[YÊU CẦU] " + rawMsg);
 
                 // Xử lý bằng ServerHandler
                 String response = handler.processCommand(rawMsg);
@@ -57,6 +59,10 @@ public class ServerUDP implements Runnable {
                 byte[] sendData = response.getBytes("UTF-8");
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddr, clientPort);
                 socket.send(sendPacket);
+
+                String shortResponse = response.length() > 50 ? response.substring(0, 50) + "..." : response;
+                logListener.onLog(String.format("[TRẢ VỀ CLIENT] IP: %s | Kết quả: %s\n ", clientIP, shortResponse));
+                
 
             } catch (Exception e) {
                 if (!isRunning) {
