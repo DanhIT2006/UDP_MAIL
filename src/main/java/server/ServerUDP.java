@@ -1,0 +1,68 @@
+package server;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class ServerUDP implements Runnable {
+    private final int port;
+    private final ServerHandler handler;
+    private final LogListener logListener;
+    private DatagramSocket socket;
+    private boolean isRunning = false;
+
+    public interface LogListener {
+        void onLog(String message);
+    }
+
+    public ServerUDP(int port, LogListener logListener) {
+        this.port = port;
+        this.logListener = logListener;
+        this.handler = new ServerHandler();
+    }
+
+    public void startServer() throws Exception {
+        socket = new DatagramSocket(port);
+        isRunning = true;
+        new Thread(this).start();
+    }
+
+    public void stopServer() {
+        isRunning = false;
+        if (socket != null && !socket.isClosed()) {
+            socket.close();
+        }
+    }
+
+    @Override
+    public void run() {
+        byte[] receiveBuffer = new byte[4096];
+        logListener.onLog("[MÁY CHỦ] Khởi tạo UDP Socket lắng nghe tại cổng " + port);
+
+        while (isRunning) {
+            try {
+                DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+                socket.receive(receivePacket);
+
+                String rawMsg = new String(receivePacket.getData(), 0, receivePacket.getLength(), "UTF-8").trim();
+                InetAddress clientAddr = receivePacket.getAddress();
+                int clientPort = receivePacket.getPort();
+
+                logListener.onLog(String.format("[GÓI TIN UDP] Từ %s:%d -> Lệnh: %s", clientAddr.getHostAddress(), clientPort, rawMsg));
+
+                // Xử lý bằng ServerHandler
+                String response = handler.processCommand(rawMsg);
+
+                // Gửi gói tin trả lời lại cho Client IP
+                byte[] sendData = response.getBytes("UTF-8");
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddr, clientPort);
+                socket.send(sendPacket);
+
+            } catch (Exception e) {
+                if (!isRunning) {
+                    logListener.onLog("[MÁY CHỦ] Đã dừng hoạt động.");
+                }
+            }
+        }
+    }
+}
