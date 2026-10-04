@@ -1,10 +1,27 @@
 package client;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public class MainMailFrame extends JFrame {
     private final String serverIp;
@@ -103,7 +120,7 @@ public class MainMailFrame extends JFrame {
 
         listMails.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listMails.getSelectedValue() != null) {
-                readMail(listMails.getSelectedValue());
+                readMail(listMails.getSelectedValue().toString());
             }
         });
     }
