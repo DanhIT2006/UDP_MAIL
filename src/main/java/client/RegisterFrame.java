@@ -15,8 +15,7 @@ public class RegisterFrame extends JFrame {
     private JTextField txtServerIp, txtServerPort, txtEmail, txtUsername, txtPassword;
     private JFrame loginFrame;
 
-    public RegisterFrame(JFrame loginFrame, String defaultIp, String defaultPort) {
-        this.loginFrame = loginFrame;
+    public RegisterFrame(String defaultIp, String defaultPort) {
 
         setTitle("Đăng Ký Tài Khoản Mới");
         setSize(450, 380);

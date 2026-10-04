@@ -1,13 +1,22 @@
 package client;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.GridLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 public class LoginFrame extends JFrame {
     private JTextField txtServerIp, txtServerPort, txtEmail, txtPassword;
 
-    public LoginFrame() {
-        setTitle("Đăng Nhập Mail Client");
+    // Constructor nhận IP và Port
+    public LoginFrame(String defaultIp, String defaultPort) {
+        setTitle("2. Đăng Nhập Mail Client");
         setSize(400, 320);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -16,11 +25,11 @@ public class LoginFrame extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         panel.add(new JLabel("IP Server:"));
-        txtServerIp = new JTextField("127.0.0.1");
+        txtServerIp = new JTextField(defaultIp);
         panel.add(txtServerIp);
 
         panel.add(new JLabel("Port Server:"));
-        txtServerPort = new JTextField("8080");
+        txtServerPort = new JTextField(defaultPort);
         panel.add(txtServerPort);
 
         panel.add(new JLabel("Email ID:"));
@@ -32,7 +41,7 @@ public class LoginFrame extends JFrame {
         panel.add(txtPassword);
 
         JButton btnLogin = new JButton("Đăng Nhập");
-        JButton btnGoRegister = new JButton("Đăng Ký Mới");
+        JButton btnGoRegister = new JButton("Chưa có TK? Đăng ký");
         panel.add(btnLogin);
         panel.add(btnGoRegister);
 
@@ -40,9 +49,14 @@ public class LoginFrame extends JFrame {
 
         btnLogin.addActionListener(e -> handleLogin());
         btnGoRegister.addActionListener(e -> {
-            new RegisterFrame(this, txtServerIp.getText().trim(), txtServerPort.getText().trim()).setVisible(true);
-            setVisible(false);
+            new RegisterFrame(txtServerIp.getText().trim(), txtServerPort.getText().trim()).setVisible(true);
+            dispose();
         });
+    }
+
+    // Constructor mặc định không tham số (Overloading)
+    public LoginFrame() {
+        this("127.0.0.1", "8080");
     }
 
     private void handleLogin() {
@@ -63,7 +77,6 @@ public class LoginFrame extends JFrame {
 
             if (res.startsWith("SUCCESS:")) {
                 String fileData = res.substring(8);
-                // Đăng nhập thành công -> Mở màn hình Hộp thư chính & Đóng cửa sổ Đăng nhập
                 new MainMailFrame(ip, port, email, password, fileData).setVisible(true);
                 dispose();
             } else {
@@ -72,9 +85,5 @@ public class LoginFrame extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Lỗi kết nối Server: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
