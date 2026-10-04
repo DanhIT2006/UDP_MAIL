@@ -13,13 +13,11 @@ import javax.swing.JTextField;
 
 public class RegisterFrame extends JFrame {
     private JTextField txtServerIp, txtServerPort, txtEmail, txtUsername, txtPassword;
-    private JFrame loginFrame;
 
     public RegisterFrame(String defaultIp, String defaultPort) {
-
-        setTitle("Đăng Ký Tài Khoản Mới");
+        setTitle("1. Đăng Ký Tài Khoản Mới");
         setSize(450, 380);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
@@ -53,8 +51,10 @@ public class RegisterFrame extends JFrame {
         add(panel);
 
         btnSubmit.addActionListener(e -> handleRegister());
+
+        // Đã sửa: Mở LoginFrame mới và truyền IP, Port vừa nhập sang
         btnCancel.addActionListener(e -> {
-            loginFrame.setVisible(true);
+            new LoginFrame(txtServerIp.getText().trim(), txtServerPort.getText().trim()).setVisible(true);
             dispose();
         });
     }
@@ -63,10 +63,10 @@ public class RegisterFrame extends JFrame {
         String ip = txtServerIp.getText().trim();
         String portStr = txtServerPort.getText().trim();
         String email = txtEmail.getText().trim();
-        String username = txtUsername.getText().trim().replace(" ", "_"); // Tránh khoảng trắng trong username
+        String username = txtUsername.getText().trim().replace(" ", "_");
         String password = txtPassword.getText().trim();
 
-        if (email.isEmpty() || username.isEmpty() || password.isEmpty()) {
+        if (ip.isEmpty() || email.isEmpty() || username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -77,12 +77,14 @@ public class RegisterFrame extends JFrame {
             String res = ClientUDP.sendAndReceive(ip, port, msg);
 
             JOptionPane.showMessageDialog(this, res);
+
+            // Đã sửa: Khởi tạo màn hình LoginFrame mới thay vì gọi biến loginFrame bị null
             if (res.startsWith("SUCCESS:")) {
-                loginFrame.setVisible(true);
+                new LoginFrame(ip, portStr).setVisible(true);
                 dispose();
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi kết nối Server: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi xử lý: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
