@@ -17,24 +17,17 @@ public class LoginFrame extends JFrame {
     private JPasswordField txtPassword; // Khai báo JPasswordField riêng biệt
 
     // Constructor nhận IP và Port
-    public LoginFrame(String defaultIp, String defaultPort) {
+    public LoginFrame() {
         setTitle("2. Đăng Nhập Mail Client");
         setSize(420, 360); // Điều chỉnh chiều cao cho vừa vặn giao diện
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // GridLayout 6 hàng, 2 cột
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        panel.add(new JLabel("IP Server:"));
-        txtServerIp = new JTextField(defaultIp);
-        panel.add(txtServerIp);
-
-        panel.add(new JLabel("Port Server:"));
-        txtServerPort = new JTextField(defaultPort);
-        panel.add(txtServerPort);
-
+        
         panel.add(new JLabel("Email ID:"));
         txtEmail = new JTextField();
         panel.add(txtEmail);
@@ -72,17 +65,15 @@ public class LoginFrame extends JFrame {
             dispose();
         });
     }
-
-    // Constructor mặc định không tham số (Overloading)
-    public LoginFrame() {
-        this("127.0.0.1", "8080");
+    public LoginFrame(String ip, String port) {
+        this();
     }
+    
+    
 
     private void handleLogin() {
-        String ip = txtServerIp.getText().trim();
-        String portStr = txtServerPort.getText().trim();
         String email = txtEmail.getText().trim();
-        String password = new String(txtPassword.getPassword()).trim(); // Lấy mật khẩu đúng chuẩn JPasswordField
+        String password = new String(txtPassword.getPassword()).trim();
 
         if (email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập Email và Mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -90,13 +81,14 @@ public class LoginFrame extends JFrame {
         }
 
         try {
-            int port = Integer.parseInt(portStr);
             String msg = "LOGIN " + email + " " + password;
-            String res = ClientUDP.sendAndReceive(ip, port, msg);
+            // Tự động sử dụng thông số mặc định từ ClientConfig
+            String res = ClientUDP.sendAndReceive(ClientConfig.SERVER_IP, ClientConfig.SERVER_PORT, msg);
 
             if (res.startsWith("SUCCESS:")) {
                 String fileData = res.substring(8);
-                new MainMailFrame(ip, port, email, password, fileData).setVisible(true);
+                // Truyền ClientConfig.SERVER_IP và ClientConfig.SERVER_PORT vào MainMailFrame
+                new MainMailFrame(ClientConfig.SERVER_IP, ClientConfig.SERVER_PORT, email, password, fileData).setVisible(true);
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, res, "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
