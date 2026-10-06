@@ -44,7 +44,7 @@ public class RegisterFrame extends JFrame {
         panel.add(txtPassword);
 
         JButton btnSubmit = new JButton("Đăng Ký");
-        JButton btnCancel = new JButton("Hủy / Quay lại");
+        JButton btnCancel = new JButton("Đăng nhập");
         panel.add(btnSubmit);
         panel.add(btnCancel);
 
