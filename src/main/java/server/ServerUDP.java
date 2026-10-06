@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class ServerUDP implements Runnable {
+    private final String ipAddress ;
     private final int port;
     private final ServerHandler handler;
     private final LogListener logListener;
@@ -15,14 +16,16 @@ public class ServerUDP implements Runnable {
         void onLog(String message);
     }
 
-    public ServerUDP(int port, LogListener logListener) {
+    public ServerUDP(String ipAddress, int port, LogListener logListener) {
+        this.ipAddress = ipAddress;
         this.port = port;
         this.logListener = logListener;
         this.handler = new ServerHandler();
     }
 
     public void startServer() throws Exception {
-        socket = new DatagramSocket(port);
+        InetAddress bindAddr = InetAddress.getByName(this.ipAddress);
+        socket = new DatagramSocket(port, bindAddr);
         isRunning = true;
         new Thread(this).start();
     }

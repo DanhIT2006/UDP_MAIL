@@ -19,6 +19,7 @@ import java.net.InetAddress;
 public class MailServerGUI extends JFrame {
     private JTextArea logArea;
     private JButton btnStart, btnStop;
+    private JTextField txtIP;
     private JTextField txtPort;
     private ServerUDP serverUDP;
 
@@ -31,19 +32,18 @@ public class MailServerGUI extends JFrame {
         setLayout(new BorderLayout(10, 10));
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        String serverIP = "Unknown";
-        try {
-            serverIP = InetAddress.getLocalHost().getHostAddress();
-        } catch (Exception e) {
-            serverIP = "127.0.0.1";
-        }
-
-        JLabel lblIP = new JLabel("Server IP: " + serverIP + " | ");
-        lblIP.setFont(new Font("Arial", Font.BOLD, 14));
-        lblIP.setForeground(java.awt.Color.BLUE);
-        topPanel.add(lblIP);
         
+
+
+        String defaultIP = "127.0.0.1";
+        try {
+            defaultIP = InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {}
+
+        topPanel.add(new JLabel("Server IP:"));
+        txtIP = new JTextField(defaultIP, 15);
+        topPanel.add(txtIP);
+
         topPanel.add(new JLabel("UDP Port:"));
         txtPort = new JTextField("8080", 6);
         topPanel.add(txtPort);
@@ -67,12 +67,14 @@ public class MailServerGUI extends JFrame {
 
     private void startServer() {
         try {
+            String ip = txtIP.getText().trim();
             int port = Integer.parseInt(txtPort.getText().trim());
-            serverUDP = new ServerUDP(port, msg -> SwingUtilities.invokeLater(() -> logArea.append(msg + "\n")));
+            serverUDP = new ServerUDP(ip, port, msg -> SwingUtilities.invokeLater(() -> logArea.append(msg + "\n")));
             serverUDP.startServer();
 
             btnStart.setEnabled(false);
             btnStop.setEnabled(true);
+            txtIP.setEnabled(false);
             txtPort.setEnabled(false);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Không thể khởi động Server: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -84,6 +86,7 @@ public class MailServerGUI extends JFrame {
             serverUDP.stopServer();
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
+            txtIP.setEnabled(true);
             txtPort.setEnabled(true);
         }
     }

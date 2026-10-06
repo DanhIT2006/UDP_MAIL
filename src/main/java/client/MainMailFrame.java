@@ -23,6 +23,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import java.awt.Image;
+import javax.swing.ImageIcon;
+
 public class MainMailFrame extends JFrame {
     private final String serverIp;
     private final int serverPort;
@@ -47,16 +50,37 @@ public class MainMailFrame extends JFrame {
         setLayout(new BorderLayout(5, 5));
 
         // Panel thông tin trên cùng
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new JLabel("Tài khoản: "));
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JPanel leftInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        leftInfoPanel.add(new JLabel("Tài khoản: "));
+
         JLabel lblUser = new JLabel(currentUserEmail);
         lblUser.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblUser.setForeground(new Color(0, 102, 204));
-        topPanel.add(lblUser);
+        leftInfoPanel.add(lblUser);
 
         JButton btnLogout = new JButton("Đăng xuất");
-        topPanel.add(btnLogout);
-        add(topPanel, BorderLayout.NORTH);
+        leftInfoPanel.add(btnLogout);
+
+        topPanel.add(leftInfoPanel, BorderLayout.WEST);
+
+        try {
+            ImageIcon originalIcon = new ImageIcon("\\UDP_MAIL\\images\\vku.png");
+            if (originalIcon.getIconWidth() > 0 ) {
+                int targetHeight = 35;
+                int targetWidth = (originalIcon.getIconWidth() *  targetHeight) / originalIcon.getIconHeight();
+
+                Image scaledImage = originalIcon.getImage().getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+                JLabel lblLogo = new JLabel(new ImageIcon(scaledImage));
+                lblLogo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+
+                topPanel.add(lblLogo, BorderLayout.EAST);
+            }
+        } catch (Exception e) {
+            System.out.println("Không tìm thấy file logo: " + e.getMessage());
+        }
 
         JTabbedPane tabbedPane = new JTabbedPane();
 

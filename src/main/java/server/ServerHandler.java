@@ -71,7 +71,7 @@ public class ServerHandler {
             return "ERROR: Không thể ghi file profile.json.";
         }
 
-        String welcomeContent = "Thank you for using this service. we hope that you will feel comfortabl........";
+        String welcomeContent = "Thank you for using this service. we hope that you will feel comfortable........";
         try (FileWriter writer = new FileWriter(new File(userDir, "new_email.txt"))) {
             writer.write(welcomeContent);
         } catch (IOException e) {
