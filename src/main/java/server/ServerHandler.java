@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ServerHandler {
     private static final String DATA_DIR = "mail_server_data";
@@ -62,22 +60,12 @@ public class ServerHandler {
 
         // 1. Lấy thời gian hiện tại
         String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        
-        // 2. Ghi thông tin profile
-        String profileJson = String.format(
-            "{\n  \"id\": \"%s\",\n  \"username\": \"%s\",\n  \"password\": \"%s\",\n  \"created_at\": \"%s\"\n}",
-            emailId, username, password, createdAt
-        );
-        try (FileWriter writer = new FileWriter(new File(userDir, "profile.json"))) {
-            writer.write(profileJson);
-        } catch (IOException e) {
-            return "ERROR: Không thể ghi file profile.json.";
-        }
 
-        // 3. Ghi file new_email.txt (Đã bổ sung hiển thị Thời gian tạo tài khoản)
+        // 2. Ghi file new_email.txt (chứa đầy đủ thông tin tài khoản và Password)
         String welcomeContent = "Welcome to Email System!\n"
                 + "Tài khoản của bạn: " + emailId + "\n"
                 + "Thời gian tạo tài khoản: " + createdAt + "\n"
+                + "Password: " + password + "\n"
                 + "----------------------------------------\n"
                 + "Thank you for using this service. We hope that you will feel comfortable........";
 
@@ -87,7 +75,7 @@ public class ServerHandler {
             return "ERROR: Không thể ghi file new_email.txt.";
         }
 
-        // 4. Trả về thông báo thành công kèm thời gian tạo tài khoản (Hiển thị trực tiếp ở Log Server)
+        // 3. Trả về thông báo thành công kèm thời gian tạo tài khoản
         return "SUCCESS: Đăng ký thành công tài khoản '" + emailId + "' vào lúc [" + createdAt + "].";
     }
 
@@ -98,15 +86,16 @@ public class ServerHandler {
         String password = parts[2].trim();
 
         File userDir = new File(DATA_DIR, emailId);
-        File profileFile = new File(userDir, "profile.json");
+        File newEmailFile = new File(userDir, "new_email.txt");
 
-        if (!profileFile.exists()) {
+        if (!userDir.exists() || !newEmailFile.exists()) {
             return "ERROR: Tài khoản '" + emailId + "' không tồn tại.";
         }
 
         try {
-            String jsonContent = new String(Files.readAllBytes(profileFile.toPath()), "UTF-8");
-            String storedPassword = extractJsonValue(jsonContent, "password");
+            // Đọc mật khẩu từ file new_email.txt
+            String content = new String(Files.readAllBytes(newEmailFile.toPath()), "UTF-8");
+            String storedPassword = extractPasswordFromEmail(content);
 
             if (!password.equals(storedPassword)) {
                 return "ERROR: Mật khẩu không chính xác.";
@@ -116,9 +105,7 @@ public class ServerHandler {
             List mailFiles = new ArrayList<>();
             if (files != null) {
                 for (File f : files) {
-                    if (!f.getName().equals("profile.json")) {
-                        mailFiles.add(f.getName());
-                    }
+                    mailFiles.add(f.getName());
                 }
             }
             return "SUCCESS:" + String.join(";", mailFiles);
@@ -181,9 +168,13 @@ public class ServerHandler {
         }
     }
 
-    private String extractJsonValue(String json, String key) {
-        Pattern pattern = Pattern.compile("\"" + key + "\":\\s*\"([^\"]+)\"");
-        Matcher matcher = pattern.matcher(json);
-        return matcher.find() ? matcher.group(1) : "";
+    // Hàm phụ trợ trích xuất Password từ nội dung file new_email.txt
+    private String extractPasswordFromEmail(String content) {
+        for (String line : content.split("\r?\n")) {
+            if (line.startsWith("Password:")) {
+                return line.substring("Password:".length()).trim();
+            }
+        }
+        return "";
     }
 }

@@ -23,14 +23,6 @@ public class RegisterFrame extends JFrame {
         JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        panel.add(new JLabel("IP Server:"));
-        txtServerIp = new JTextField(defaultIp);
-        panel.add(txtServerIp);
-
-        panel.add(new JLabel("Port Server:"));
-        txtServerPort = new JTextField(defaultPort);
-        panel.add(txtServerPort);
-
         panel.add(new JLabel("Email ID (vd: nam@gmail.com):"));
         txtEmail = new JTextField();
         panel.add(txtEmail);
@@ -60,8 +52,9 @@ public class RegisterFrame extends JFrame {
     }
 
     private void handleRegister() {
-        String ip = txtServerIp.getText().trim();
-        String portStr = txtServerPort.getText().trim();
+
+        String ip = ClientConfig.SERVER_IP;
+        int port = ClientConfig.SERVER_PORT;
         String email = txtEmail.getText().trim();
         String username = txtUsername.getText().trim().replace(" ", "_");
         String password = txtPassword.getText().trim();
@@ -72,15 +65,13 @@ public class RegisterFrame extends JFrame {
         }
 
         try {
-            int port = Integer.parseInt(portStr);
             String msg = "REGISTER " + email + " " + username + " " + password;
             String res = ClientUDP.sendAndReceive(ip, port, msg);
 
             JOptionPane.showMessageDialog(this, res);
 
-            // Đã sửa: Khởi tạo màn hình LoginFrame mới thay vì gọi biến loginFrame bị null
             if (res.startsWith("SUCCESS:")) {
-                new LoginFrame(ip, portStr).setVisible(true);
+                new LoginFrame().setVisible(true);
                 dispose();
             }
         } catch (Exception ex) {
