@@ -60,7 +60,10 @@ public class ServerHandler {
 
         userDir.mkdirs();
 
+        // 1. Lấy thời gian hiện tại
         String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        
+        // 2. Ghi thông tin profile
         String profileJson = String.format(
             "{\n  \"id\": \"%s\",\n  \"username\": \"%s\",\n  \"password\": \"%s\",\n  \"created_at\": \"%s\"\n}",
             emailId, username, password, createdAt
@@ -71,14 +74,21 @@ public class ServerHandler {
             return "ERROR: Không thể ghi file profile.json.";
         }
 
-        String welcomeContent = "Thank you for using this service. we hope that you will feel comfortable........";
+        // 3. Ghi file new_email.txt (Đã bổ sung hiển thị Thời gian tạo tài khoản)
+        String welcomeContent = "Welcome to Email System!\n"
+                + "Tài khoản của bạn: " + emailId + "\n"
+                + "Thời gian tạo tài khoản: " + createdAt + "\n"
+                + "----------------------------------------\n"
+                + "Thank you for using this service. We hope that you will feel comfortable........";
+
         try (FileWriter writer = new FileWriter(new File(userDir, "new_email.txt"))) {
             writer.write(welcomeContent);
         } catch (IOException e) {
             return "ERROR: Không thể ghi file new_email.txt.";
         }
 
-        return "SUCCESS: Đăng ký thành công tài khoản '" + emailId + "'.";
+        // 4. Trả về thông báo thành công kèm thời gian tạo tài khoản (Hiển thị trực tiếp ở Log Server)
+        return "SUCCESS: Đăng ký thành công tài khoản '" + emailId + "' vào lúc [" + createdAt + "].";
     }
 
     private String handleLogin(String[] parts) {
@@ -118,7 +128,6 @@ public class ServerHandler {
     }
 
     private String handleSend(String rawCommand) {
-        // Cấu trúc: SEND|senderEmail|senderIp|recipientEmail|recipientIp|time|subject|content
         String[] parts = rawCommand.split("\\|", 8);
         if (parts.length < 8) {
             return "ERROR: Gói tin SEND thiếu dữ liệu.";
@@ -142,7 +151,6 @@ public class ServerHandler {
         String fileName = "email_" + timestamp + "_from_" + senderPrefix + ".txt";
         File emailFile = new File(recipientDir, fileName);
 
-        // Định dạng nội dung email được ghi xuống file trên Server
         String emailBody = String.format(
             "From: %s (IP: %s)\nTo: %s (IP: %s)\nDate: %s\nSubject: %s\n----------------------------------------\n%s",
             senderEmail, senderIp, recipientEmail, recipientIp, sendTime, subject, content

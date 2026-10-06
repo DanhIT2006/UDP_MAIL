@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,9 +24,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-
-import java.awt.Image;
-import javax.swing.ImageIcon;
 
 public class MainMailFrame extends JFrame {
     private final String serverIp;
@@ -201,12 +200,11 @@ public class MainMailFrame extends JFrame {
         }
 
         try {
-            // Tự động lấy IP của Client hiện tại
+            
             String senderIp = InetAddress.getLocalHost().getHostAddress();
-            // Lấy thời gian gửi hiện tại
+
             String sendTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-            // Đóng gói gói tin phân cách bằng '|'
             // SEND|senderEmail|senderIp|recipientEmail|recipientIp|time|subject|content
             String msg = "SEND|" + currentUserEmail + "|" + senderIp + "|" + recipientEmail + "|" + recipientIp + "|" + sendTime + "|" + subject + "|" + content;
 
