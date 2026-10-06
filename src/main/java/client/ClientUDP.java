@@ -7,7 +7,7 @@ import java.net.InetAddress;
 public class ClientUDP {
     public static String sendAndReceive(String serverIp, int serverPort, String message) throws Exception {
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(3000); // Quá 3 giây không có phản hồi sẽ ném ra Exception Timeout
+            socket.setSoTimeout(3000); 
 
             InetAddress serverAddr = InetAddress.getByName(serverIp);
             byte[] sendData = message.getBytes("UTF-8");
