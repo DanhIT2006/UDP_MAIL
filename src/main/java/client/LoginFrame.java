@@ -61,9 +61,9 @@ public class LoginFrame extends JFrame {
 
         btnLogin.addActionListener(e -> handleLogin());
         btnGoRegister.addActionListener(e -> {
-            new RegisterFrame(txtServerIp.getText().trim(), txtServerPort.getText().trim()).setVisible(true);
-            dispose();
-        });
+        new RegisterFrame(ClientConfig.SERVER_IP, String.valueOf(ClientConfig.SERVER_PORT)).setVisible(true);
+        dispose();
+});
     }
     public LoginFrame(String ip, String port) {
         this();
