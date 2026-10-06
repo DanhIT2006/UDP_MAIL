@@ -140,9 +140,9 @@ public class MainMailFrame extends JFrame {
         btnRefresh.addActionListener(e -> refreshMailList());
         btnSend.addActionListener(e -> sendMail());
         btnLogout.addActionListener(e -> {
-            new LoginFrame(serverIp, String.valueOf(serverPort)).setVisible(true);
+            new LoginFrame().setVisible(true);
             dispose();
-        });
+});
 
         listMails.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listMails.getSelectedValue() != null) {

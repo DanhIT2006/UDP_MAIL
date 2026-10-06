@@ -54,9 +54,9 @@ public class RegisterFrame extends JFrame {
 
         // Đã sửa: Mở LoginFrame mới và truyền IP, Port vừa nhập sang
         btnCancel.addActionListener(e -> {
-            new LoginFrame(txtServerIp.getText().trim(), txtServerPort.getText().trim()).setVisible(true);
+            new LoginFrame().setVisible(true);
             dispose();
-        });
+});
     }
 
     private void handleRegister() {
