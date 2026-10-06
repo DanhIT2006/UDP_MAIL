@@ -46,11 +46,11 @@ public class MainMailFrame extends JFrame {
         setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(5, 5));
+        setLayout(new BorderLayout(5, 0));
 
         // Panel thông tin trên cùng
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
         JPanel leftInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         leftInfoPanel.add(new JLabel("Tài khoản: "));
@@ -66,13 +66,14 @@ public class MainMailFrame extends JFrame {
         topPanel.add(leftInfoPanel, BorderLayout.WEST);
 
         try {
-            ImageIcon originalIcon = new ImageIcon("\\UDP_MAIL\\images\\vku.png");
+            ImageIcon originalIcon = new ImageIcon("src/images/vku.png");
             if (originalIcon.getIconWidth() > 0 ) {
-                int targetHeight = 35;
+                int targetHeight = 80;
                 int targetWidth = (originalIcon.getIconWidth() *  targetHeight) / originalIcon.getIconHeight();
 
                 Image scaledImage = originalIcon.getImage().getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
                 JLabel lblLogo = new JLabel(new ImageIcon(scaledImage));
+                lblLogo.setVerticalAlignment(JLabel.BOTTOM);
                 lblLogo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
                 topPanel.add(lblLogo, BorderLayout.EAST);
@@ -80,6 +81,8 @@ public class MainMailFrame extends JFrame {
         } catch (Exception e) {
             System.out.println("Không tìm thấy file logo: " + e.getMessage());
         }
+
+        add(topPanel, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
